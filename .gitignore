@@ -1,0 +1,14 @@
+.idea
+.ipynb_checkpoints
+.venv
+__pycache__
+output
+results
+thirdparty/FINDER/data
+thirdparty/FINDER/results
+thirdparty/ComplexCi/data
+runs
+*.zip
+*.npz
+*.db
+lightning_logs

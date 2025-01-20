@@ -1,0 +1,12 @@
+python -m attack_resilience_complex_networks.explain \
+  --cfg synthetic_gene_sf_n_homo \
+  --global_seed 222 \
+  --root_dir /data/selinda \
+  --agent rl-gnn \
+  --model_path synthetic_gene_sf_n_homo-agent-rl-gnn-seed-222_3/best-models/best_model.zip \
+  --explanation_type model \
+  --num_instances 30 \
+  --nosingle_step \
+  --block_feature stable_state \
+  --block_feature derivative \
+  --block_feature resilience_centrality

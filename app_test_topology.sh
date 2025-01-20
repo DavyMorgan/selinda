@@ -1,0 +1,15 @@
+python -m attack_resilience_complex_networks.eval \
+  --cfg real_topology \
+  --global_seed 111 \
+  --root_dir /data/selinda \
+  --agent degree \
+  --oneshot \
+  --nohas_dynamics \
+  --block_feature kcore \
+  --block_feature cc \
+  --block_feature pagerank \
+  --block_feature betweenness \
+  --model_path synthetic_ba_n_dismantle-agent-rl-gnn-seed-111_4/best-models/best_model.zip \
+  --norandom_episode \
+  --num_instances 0 \
+  --nocase_study

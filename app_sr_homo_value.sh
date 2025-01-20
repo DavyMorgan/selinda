@@ -1,0 +1,11 @@
+python -m attack_resilience_complex_networks.symbolic_regression \
+    --sr_data_filename ./sr_data_sf_homo_value.csv \
+    --loss L2 \
+    --target logit \
+    --nosingle_step \
+    --explain_value \
+    --primitives d_mean \
+    --primitives d_squared_mean \
+    --binary_operators '+' \
+    --binary_operators '*' \
+    --binary_operators '/'

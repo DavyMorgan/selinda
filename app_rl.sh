@@ -1,0 +1,17 @@
+python -m attack_resilience_complex_networks.train \
+  --cfg synthetic_gene_sf_n_vec \
+  --global_seed 111 \
+  --root_dir /data/selinda \
+  --val_freq 4000 \
+  --save_freq 4000 \
+  --noearly_stop \
+  --num_envs 100 \
+  --lr 0.0004 \
+  --steps_per_iteration 4000 \
+  --batch_size 500 \
+  --optim_epochs_per_iteration 4 \
+  --train_steps 1_000_000 \
+  --normalize_reward \
+  --gamma 1.0 \
+  --gae_lambda 1.0 \
+  --num_instances 30

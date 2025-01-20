@@ -1,0 +1,48 @@
+# env
+env_specs:
+  ode_method: RK45
+  topology_filename: data/real/real_clustered_neuron_scale_500.gz
+  graph_type: Brain_1
+  graph_scale: 20.0
+  dynamics_type: neuron
+  dynamics_params:
+    b: 1.0
+    u: 3.5
+    d: 2.0
+  dynamics_vec_params: powerlaw
+  target_dynamics_params:
+    num_altered_nodes: 3
+    seed: 17
+    max:
+      b: 2.0
+    min:
+      b: 0.1
+    powerlaw:
+      a: 1.5
+      loc: 0.1
+      scale: 2.0
+  beta_effc: 2.00
+  budget: 1.0
+  stable_t: 400.0
+  stable_steps: 100
+  graph_layout: kamada_kawai
+
+# evaluation
+eval_specs:
+  seed: 12345
+
+# agent
+agent_specs:
+  policy_feature_dim: 32
+  value_feature_dim: 32
+  policy_hidden_units: !!python/tuple [32, 32, 1]
+  value_hidden_units: !!python/tuple [32, 32, 1]
+
+# mlp
+mlp_specs:
+  hidden_units: !!python/tuple [32, 32]
+
+# gnn
+gnn_specs:
+  num_gnn_layers: 2
+  node_dim: 32

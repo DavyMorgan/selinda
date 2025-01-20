@@ -1,0 +1,12 @@
+python -m attack_resilience_complex_networks.generate_symbolic_regression_data \
+  --cfg synthetic_gene_sf_n_homo \
+  --global_seed 222 \
+  --root_dir /data/selinda \
+  --agent rl-gnn \
+  --model_path synthetic_gene_sf_n_homo-agent-rl-gnn-seed-222_3/best-models/best_model.zip \
+  --num_instances 30 \
+  --nosingle_step \
+  --save_filename ./sr_data_sf_homo_policy.csv \
+  --block_feature stable_state \
+  --block_feature derivative \
+  --block_feature resilience_centrality

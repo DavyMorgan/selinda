@@ -1,0 +1,67 @@
+[6]: network 1£¬network 2
+
+[7]: network 3, network 4
+
+[17]: network 5(A), network 6(P)
+
+[8]: network 7, network 8(P)
+
+[19]: x
+
+[34]: network 9(P)
+
+[44]: missing
+
+[47-48]: network 10(P)->M_PL_47,
+
+[51]: network 11(P)¡£Ñ¡ÓÃflower abundance, ×¢ÒâMutisia decurrens is not included in the study, was included in graph because it was abundant at study sites
+
+[61]: 
+       network 12(P,flower)->M_PL_61_1
+       network 13(P,flower)->M_PL_61_2
+       network 14(P,flower)->M_PL_61_3
+network 15(P,flower)->M_PL_61_4
+network 16(P,flower)->M_PL_61_5
+network 17(P,flower)->M_PL_61_6
+network 18(P,flower)->M_PL_61_7
+network 19(P,flower)->M_PL_61_8
+network 20(P,flower)->M_PL_61_9
+network 21(P,flower)->M_PL_61_10
+network 22(P,flower)->M_PL_61_11
+network 23(P,flower)->M_PL_61_12
+network 24(P,flower)->M_PL_61_13
+network 25(P,flower)->M_PL_61_14
+network 26(P,flower)->M_PL_61_15
+network 27(P,flower)->M_PL_61_16
+network 28(P,flower)->M_PL_61_17
+network 29(P,flower)->M_PL_61_18
+network 30(P,flower)->M_PL_61_19
+network 31(P,flower)->M_PL_61_20
+network 32(P,flower)->M_PL_61_21
+network 33(P,flower)->M_PL_61_22
+network 34(P,flower)->M_PL_61_23
+network 35(P,flower)->M_PL_61_24
+network 36(P,flower)->M_PL_61_25
+network 37(P,flower)->M_PL_61_26
+network 38(P,flower)->M_PL_61_27
+network 39(P,flower)->M_PL_61_28
+network 40(P,flower)->M_PL_61_29
+network 41(P,flower)->M_PL_61_30
+network 42(P,flower)->M_PL_61_31
+network 43(P,flower)->M_PL_61_32
+network 44(P,flower)->M_PL_61_33
+network 45(P,flower)->M_PL_61_34
+network 46(P,flower)->M_PL_61_35
+network 47(P,flower)->M_PL_61_36
+network 48(P,flower)->M_PL_61_37
+network 49(P,flower)->M_PL_61_38
+network 50(P,flower)->M_PL_61_39
+network 51(P,flower)->M_PL_61_40
+network 52(P,flower)->M_PL_61_41
+network 53(P,flower)->M_PL_61_42
+network 54(P,flower)->M_PL_61_43
+network 55(P,flower)->M_PL_61_44
+network 56(P,flower)->M_PL_61_45
+network 57(P,flower)->M_PL_61_46
+network 58(P,flower)->M_PL_61_47
+network 59(P,flower)->M_PL_61_48

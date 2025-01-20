@@ -1,0 +1,17 @@
+python -m attack_resilience_complex_networks.symbolic_regression \
+    --sr_data_filename ./sr_data_dismantle_single_step.csv \
+    --loss Pairwise \
+    --target pair \
+    --nosingle_step \
+    --num_nodes 100 \
+    --primitives d \
+    --primitives w_d \
+    --primitives k \
+    --primitives w_k \
+    --binary_operators '+' \
+    --binary_operators '-' \
+    --binary_operators '*' \
+    --binary_operators '/' \
+    --unary_operators 'neg' \
+    --unary_operators 'square' \
+    --unary_operators 'sqrt'

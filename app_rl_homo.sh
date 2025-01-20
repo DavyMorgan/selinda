@@ -1,0 +1,23 @@
+python -m attack_resilience_complex_networks.train \
+  --cfg synthetic_gene_sf_n_homo \
+  --global_seed 222 \
+  --root_dir /data/selinda \
+  --val_freq 4000 \
+  --save_freq 4000 \
+  --noearly_stop \
+  --agent rl-gnn \
+  --has_dynamics \
+  --num_envs 100 \
+  --lr 0.0004 \
+  --steps_per_iteration 4000 \
+  --batch_size 500 \
+  --optim_epochs_per_iteration 4 \
+  --train_steps 1_000_000 \
+  --normalize_reward \
+  --gamma 1.0 \
+  --gae_lambda 1.0 \
+  --norandom_episode \
+  --num_instances 30 \
+  --block_feature resilience_centrality \
+  --block_feature stable_state \
+  --block_feature derivative

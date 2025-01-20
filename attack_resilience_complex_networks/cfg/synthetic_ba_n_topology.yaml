@@ -1,0 +1,32 @@
+# env
+env_specs:
+  topology_filename: data/synthetic/synthetic_n_ba.gz
+  graph_type: BA-uniform_node-100_degree-6_weight-1.0_gamma-None_nu-None_seed-0
+  graph_scale: 1.0
+  random_graph_specs:
+    graph_type: BA
+    graph_scale: 1.0
+    num_nodes: 100
+    avg_degree: 6
+  budget: 1.0
+  graph_layout: kamada_kawai
+
+# evaluation
+eval_specs:
+  seed: 12345
+
+# agent
+agent_specs:
+  policy_feature_dim: 32
+  value_feature_dim: 32
+  policy_hidden_units: !!python/tuple [32, 32, 1]
+  value_hidden_units: !!python/tuple [32, 32, 1]
+
+# mlp
+mlp_specs:
+  hidden_units: !!python/tuple [32, 32]
+
+# gnn
+gnn_specs:
+  num_gnn_layers: 2
+  node_dim: 32

@@ -1,0 +1,27 @@
+# env
+env_specs:
+  topology_filename: data/real/Crime.txt
+  graph_type: 
+  graph_scale: 1.0
+  budget: 1.0
+  graph_layout: circular
+
+# evaluation
+eval_specs:
+  seed: 12345
+
+# agent
+agent_specs:
+  policy_feature_dim: 32
+  value_feature_dim: 32
+  policy_hidden_units: !!python/tuple [32, 32, 1]
+  value_hidden_units: !!python/tuple [32, 32, 1]
+
+# mlp
+mlp_specs:
+  hidden_units: !!python/tuple [32, 32]
+
+# gnn
+gnn_specs:
+  num_gnn_layers: 2
+  node_dim: 32
