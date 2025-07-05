@@ -1,6 +1,7 @@
 # Selinda
 
 Selinda is a self-inductive AI for advancing network resilience theories.
+The system was initially described in the preprint [Advancing network resilience theories with symbolized reinforcement learning](https://davymorgan.github.io/assets/pdf/NC-selinda.pdf).
 Contributors to this project are from the [Future Intelligence Lab](https://fi.ee.tsinghua.edu.cn) at [Tsinghua University](https://www.tsinghua.edu.cn/en/).
 
 ![Loading Model Overview](assets/framework.png "Model Overview")
