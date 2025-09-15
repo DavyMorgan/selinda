@@ -1,8 +1,8 @@
 import graph_tool.all as gt
 
 # --- Configuration ---
-input_gt_file = "maayan-foodweb.gt"    # Path to your input .gt file
-output_txt_file = "maayan-foodweb.txt"  # Path for the output .txt file
+input_gt_file = "ego-twitter.gt"    # Path to your input .gt file
+output_txt_file = input_gt_file.replace(".gt", ".txt")  # Output .txt file path
 
 try:
     # 1. Load the graph from the .gt file
