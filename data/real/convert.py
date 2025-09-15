@@ -21,7 +21,8 @@ try:
 
             # Write the formatted line to the file
             # Note: {{}} is used in f-strings to produce a literal {}
-            f.write(f"{source_node} {target_node} {{}}\n")
+            if source_node != target_node:  # Avoid self-loops
+                f.write(f"{source_node} {target_node} {{}}\n")
 
     print("Conversion complete.")
 
