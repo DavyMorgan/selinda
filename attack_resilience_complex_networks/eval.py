@@ -96,7 +96,10 @@ def main(_):
                     proxy = (None, None, eval_env.report_connectivity_history(), None, None)
             case_time = time.time() - start_time
             report_eval(case_time, cfg, eval_env, budget, _mean_reward, attacked_nodes, num_nodes_after_attack, proxy)
-        _network_proxy = proxy[3] if FLAGS.has_dynamics else proxy[2]
+        if proxy:
+            _network_proxy = proxy[3] if FLAGS.has_dynamics else proxy[2]
+        else:
+            _network_proxy = None
         return _mean_reward, case_time, attacked_nodes, _network_proxy
 
     if FLAGS.num_instances == 0:
