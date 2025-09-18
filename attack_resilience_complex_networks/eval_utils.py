@@ -64,7 +64,8 @@ def get_model(cfg: Config,
 
 def get_agent(cfg: Config,
               env: Optional[Union[DummyVecEnv, VecNormalize]],
-              model_path: Optional[str]):
+              model_path: Optional[str],
+              reinsertion: bool = False):
     if cfg.agent == 'random':
         from attack_resilience_complex_networks.agent.heuristic import random_policy
         agent = random_policy
@@ -82,7 +83,7 @@ def get_agent(cfg: Config,
         agent = PY_GDM()
     elif cfg.agent == 'gnd':
         from attack_resilience_complex_networks.agent.gnd import PY_GND
-        agent = PY_GND()
+        agent = PY_GND(reinsertion=reinsertion)
     elif cfg.agent == 'ei':
         from attack_resilience_complex_networks.agent.ei import PY_EI
         agent = PY_EI()

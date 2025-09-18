@@ -22,6 +22,7 @@ flags.DEFINE_enum('agent', None,
                    'selinda-dynamic', 'selinda-topology', 'selinda-homogeneous', 'rl-gnn'],
                   'Agent type.')
 flags.DEFINE_bool('oneshot', False, 'Whether to use oneshot test.')
+flags.DEFINE_bool('reinsertion', False, 'Whether to use reinsertion.')
 flags.DEFINE_bool('has_dynamics', True, 'Whether the network has a system dynamic.')
 flags.DEFINE_string('model_path', None, 'Path to saved mode to evaluate.')
 flags.DEFINE_bool('random_episode', False, 'Whether to use a random network in each episode.')
@@ -79,7 +80,7 @@ def main(_):
         model_path = None
         rl_eval_env = None
 
-    agent = get_agent(cfg, rl_eval_env, model_path)
+    agent = get_agent(cfg, rl_eval_env, model_path, FLAGS.reinsertion)
 
     def test_core() -> Tuple[float, float, List[int], List[float]]:
         with th.no_grad():
