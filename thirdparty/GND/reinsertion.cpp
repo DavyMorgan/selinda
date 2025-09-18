@@ -67,11 +67,15 @@ typedef graph_traits<Graph>::vertices_size_type VertexIndex;
 typedef VertexIndex* Rank;
 typedef Vertex* Parent;
 
-const char* FILE_NET = "CrimeNet.txt";  // input the network, format: id id
-const char* FILE_ID  = "NodeSet_GND_weighted_CrimeNet.txt";   // input the id of the removed nodes before reinserting
-const char* FILE_ID2 = "NodeSet_GNDR_weighted_CrimeNet.txt";   // output the id of the removed nodes after reinserting
+//const char* FILE_NET = "CrimeNet.txt";  // input the network, format: id id
+//const char* FILE_ID  = "NodeSet_GND_weighted_CrimeNet.txt";   // input the id of the removed nodes before reinserting
+//const char* FILE_ID2 = "NodeSet_GNDR_weighted_CrimeNet.txt";   // output the id of the removed nodes after reinserting
 
-const int Sort_Strategy = 1; // removing order
+const char* FILE_NET;  // input the network, format: id id
+const char* FILE_ID;   // input the id of the removed nodes before reinserting
+const char* FILE_ID2;   // output the id of the removed nodes after reinserting
+                                                               //
+const int Sort_Strategy = 2; // removing order
 							 // 0: keep the original order 
 							 // 1: ascending order - better strategy for weighted case 
 							 // 2: descending order - better strategy for unweighted case 
@@ -303,7 +307,12 @@ void write(vector<int> nodes_id) {
 
 int main(int ac, char** av)
 {
-	po::variables_map vm = parse_command_line(ac, av);
+    for (int i = 0; i < ac; i++)
+        std::cout<<av[i]<<std::endl;
+    FILE_NET = av[1];
+    FILE_ID = av[2];
+    FILE_ID2 = av[3];
+	//po::variables_map vm = parse_command_line(ac, av);
 	read_graph();
 
 	vector<int> nodes, nodes_ordered; // store the nodes that should be removed after reinsertion
