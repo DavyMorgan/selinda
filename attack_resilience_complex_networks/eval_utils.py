@@ -77,7 +77,7 @@ def get_agent(cfg: Config,
         agent = resilience_centrality
     elif cfg.agent == 'finder':
         from attack_resilience_complex_networks.agent.finder import PY_FINDER
-        agent = PY_FINDER()
+        agent = PY_FINDER(reinsertion=reinsertion)
     elif cfg.agent == 'gdm':
         from attack_resilience_complex_networks.agent.gdm import PY_GDM
         agent = PY_GDM()
