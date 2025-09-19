@@ -80,7 +80,7 @@ def get_agent(cfg: Config,
         agent = PY_FINDER(reinsertion=reinsertion)
     elif cfg.agent == 'gdm':
         from attack_resilience_complex_networks.agent.gdm import PY_GDM
-        agent = PY_GDM()
+        agent = PY_GDM(reinsertion=reinsertion)
     elif cfg.agent == 'gnd':
         from attack_resilience_complex_networks.agent.gnd import PY_GND
         agent = PY_GND(reinsertion=reinsertion)
@@ -116,8 +116,10 @@ def get_agent(cfg: Config,
 
 def evaluate(agent,
              env: EvalCN) -> Tuple[float, float, List[int], int, Optional[Tuple]]:
-    if FLAGS.agent in ['rl-gnn', 'gdm']:
+    if FLAGS.agent == 'rl-gnn':
         return evaluate_ppo(agent, env)
+    elif FLAGS.agent == 'gdm':
+        return evaluate_gdm(agent, env)
     else:
         return evaluate_baseline(agent, env)
 
@@ -148,6 +150,20 @@ def evaluate_ppo(agent, env: EvalCN) -> Tuple[float, float, List[int], int, Opti
         rank_one_shot = indices[valid_actions][np.argsort(log_prob[valid_actions])]
         solution = rank_one_shot[::-1].tolist()
         reward, _, action_history, num_nodes_after_attack, _, _, _, _, _ = env.evaluate_finder_solution(solution)
+    return reward, 0.0, action_history, num_nodes_after_attack, None
+
+
+def evaluate_gdm(agent, env: EvalCN) \
+        -> Tuple[float, float, List[int], int, Tuple[List[float], List[float], List[float], List[float], List[float]]]:
+    obs, _ = env.reset()
+    _, valid_actions, indices = unpack_obs(obs)
+    g = env.get_topology()
+    nx.set_edge_attributes(g, 1.0, 'weight')
+    _, log_prob = agent.predict(obs, deterministic=True)
+    rank_one_shot = indices[valid_actions][np.argsort(log_prob[valid_actions])]
+    solution = rank_one_shot[::-1].tolist()
+    solution = agent.update_solution(g, solution)
+    reward, _, action_history, num_nodes_after_attack, _, _, _, _, _ = env.evaluate_finder_solution(solution)
     return reward, 0.0, action_history, num_nodes_after_attack, None
 
 

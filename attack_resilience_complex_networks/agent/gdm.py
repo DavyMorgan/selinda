@@ -14,6 +14,7 @@ import numpy as np
 import networkx as nx
 import torch as th
 
+from attack_resilience_complex_networks.agent.reinsertion import reinsert
 
 def chi(o, e):
     if e == 0:
@@ -58,9 +59,10 @@ def transform_obs(obs: Dict):
 
 
 class PY_GDM:
-    def __init__(self):
+    def __init__(self, reinsertion: bool=False):
         self.model = GAT_Model()
         self.model.load_state_dict(th.load(gdm_model_path, map_location='cpu'))
+        self.reinsertion = reinsertion
 
     def predict(self, obs: Dict, deterministic=True):
         x, edge_index, action_mask, indices = transform_obs(obs)
@@ -68,3 +70,7 @@ class PY_GDM:
         action = indices[action_mask][np.argmax(pred[action_mask])]
         return action, pred
 
+    def update_solution(self, topology: nx.Graph, solution: List[int]) -> List[int]:
+        if self.reinsertion:
+            solution = reinsert(topology, solution)
+        return solution
