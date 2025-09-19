@@ -89,7 +89,7 @@ def get_agent(cfg: Config,
         agent = PY_EI()
     elif cfg.agent == 'ci':
         from attack_resilience_complex_networks.agent.ci import PY_CI
-        agent = PY_CI()
+        agent = PY_CI(use_reinsert=reinsertion)
     elif cfg.agent == 'corehd':
         from attack_resilience_complex_networks.agent.corehd import PY_COREHD
         agent = PY_COREHD()
@@ -98,7 +98,7 @@ def get_agent(cfg: Config,
         agent = sr
     elif cfg.agent == 'selinda-topology':
         from attack_resilience_complex_networks.agent.sr import PY_SR
-        agent = PY_SR()
+        agent = PY_SR(use_reinsert=reinsertion)
     elif cfg.agent == 'selinda-homogeneous':
         from attack_resilience_complex_networks.agent.heuristic import resilience_centrality_revised
         agent = resilience_centrality_revised
