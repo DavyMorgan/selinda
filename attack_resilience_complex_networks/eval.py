@@ -18,7 +18,7 @@ flags.DEFINE_string('root_dir', '/data/selinda', 'Root directory for writing log
 flags.DEFINE_bool('tmp', False, 'Whether to use temporary storage.')
 flags.DEFINE_bool('debug', False, 'Whether to use debug mode.')
 flags.DEFINE_enum('agent', None,
-                  ['random', 'degree', 'resilience', 'finder', 'gdm', 'gnd', 'ei', 'ci', 'corehd',
+                  ['random', 'degree', 'resilience', 'pagerank', 'finder', 'gdm', 'gnd', 'ei', 'ci', 'corehd',
                    'selinda-dynamic', 'selinda-topology', 'selinda-homogeneous', 'rl-gnn'],
                   'Agent type.')
 flags.DEFINE_bool('oneshot', False, 'Whether to use oneshot test.')
@@ -85,7 +85,7 @@ def main(_):
     def test_core() -> Tuple[float, float, List[int], List[float]]:
         with th.no_grad():
             start_time = time.time()
-            if FLAGS.agent in ['finder', 'gnd', 'ei', 'ci', 'corehd', 'selinda-topology'] or FLAGS.oneshot:
+            if FLAGS.agent in ['pagerank', 'finder', 'gnd', 'ei', 'ci', 'corehd', 'selinda-topology'] or FLAGS.oneshot:
                 _mean_reward, _, attacked_nodes, num_nodes_after_attack, proxy = evaluate(agent, eval_env)
             else:
                 _mean_reward, _, attacked_nodes, num_nodes_after_attack, _ = evaluate(agent, eval_env)
