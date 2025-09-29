@@ -6,6 +6,7 @@ import sys
 domirank_root_path = os.path.join(os.getcwd(), 'thirdparty', 'DomiRank')
 if domirank_root_path not in sys.path:
     sys.path.append(domirank_root_path)
+    sys.path.append(os.path.join(domirank_root_path, 'src'))
 
 import numpy as np
 import networkx as nx
