@@ -105,6 +105,9 @@ def get_agent(cfg: Config,
     elif cfg.agent == 'eigen-state':
         from attack_resilience_complex_networks.agent.eigen_state import eigen_state
         agent = eigen_state
+    elif cfg.agent == 'state':
+        from attack_resilience_complex_networks.agent.state import state
+        agent = state
     elif cfg.agent == 'selinda-dynamic':
         from attack_resilience_complex_networks.agent.symbolic_regression import sr
         agent = sr
