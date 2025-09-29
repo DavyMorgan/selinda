@@ -102,6 +102,9 @@ def get_agent(cfg: Config,
     elif cfg.agent == 'pagerank-state':
         from attack_resilience_complex_networks.agent.pagerank_state import pagerank_state
         agent = pagerank_state
+    elif cfg.agent == 'eigen-state':
+        from attack_resilience_complex_networks.agent.eigen_state import eigen_state
+        agent = eigen_state
     elif cfg.agent == 'selinda-dynamic':
         from attack_resilience_complex_networks.agent.symbolic_regression import sr
         agent = sr
@@ -207,7 +210,7 @@ def evaluate_baseline(
         num_nodes = env.get_num_nodes()
         with tqdm(total=num_nodes) as pbar:
             while not done:
-                if env.cfg.agent in ['pagerank-state']:
+                if env.cfg.agent in ['pagerank-state', 'eigen-state']:
                     g = env.get_topology()
                     nx.set_edge_attributes(g, 1.0, 'weight')
                     action = agent(g, obs)
