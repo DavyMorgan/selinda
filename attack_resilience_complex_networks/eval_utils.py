@@ -75,6 +75,12 @@ def get_agent(cfg: Config,
     elif cfg.agent == 'resilience':
         from attack_resilience_complex_networks.agent.heuristic import resilience_centrality
         agent = resilience_centrality
+    elif cfg.agent == 'state':
+        from attack_resilience_complex_networks.agent.heuristic import state
+        agent = state
+    elif cfg.agent == 'rc-state':
+        from attack_resilience_complex_networks.agent.heuristic import rc_state
+        agent = rc_state
     elif cfg.agent == 'pagerank':
         from attack_resilience_complex_networks.agent.pagerank import PY_PAGERANK
         agent = PY_PAGERANK()
@@ -105,9 +111,6 @@ def get_agent(cfg: Config,
     elif cfg.agent == 'eigen-state':
         from attack_resilience_complex_networks.agent.eigen_state import eigen_state
         agent = eigen_state
-    elif cfg.agent == 'state':
-        from attack_resilience_complex_networks.agent.state import state
-        agent = state
     elif cfg.agent == 'selinda-dynamic':
         from attack_resilience_complex_networks.agent.symbolic_regression import sr
         agent = sr

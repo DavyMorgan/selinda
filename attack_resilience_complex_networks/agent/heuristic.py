@@ -68,3 +68,41 @@ def resilience_centrality_revised(obs: Dict[str, np.ndarray], oneshot: bool = Fa
     # If there is no valid choice, then `0` is returned which results in an
     # infeasible action ending the episode.
     return 0
+
+
+def state(obs: Dict[str, np.ndarray], oneshot: bool = False) -> int:
+    node_features, valid_actions, indices = unpack_obs(obs)
+    if len(valid_actions):
+        stable_state = node_features[:, -4]
+        sr_score = stable_state
+        if not oneshot:
+            # get the node with the highest score and with a true action mask
+            action = indices[valid_actions][np.argmax(sr_score[valid_actions])]
+            return action
+        else:
+            rank_one_shot = indices[valid_actions][np.argsort(sr_score[valid_actions])]
+            return rank_one_shot[::-1].tolist()
+
+    # If there is no valid choice, then `0` is returned which results in an
+    # infeasible action ending the episode.
+    return 0
+
+
+def rc_state(obs: Dict[str, np.ndarray], oneshot: bool = False) -> Union[int, List[int]]:
+    node_features, valid_actions, indices = unpack_obs(obs)
+    if len(valid_actions):
+        resilience = node_features[:, 3]
+        stable_state = node_features[:, -4]
+        sr_score = resilience * stable_state
+        if not oneshot:
+            # get the node with the highest resilience centrality value and with a true action mask
+            action = indices[valid_actions][np.argmax(sr_score[valid_actions])]
+            return action
+        else:
+            rank_one_shot = indices[valid_actions][np.argsort(sr_score[valid_actions])]
+            return rank_one_shot[::-1].tolist()
+
+    # If there is no valid choice, then `0` is returned which results in an
+    # infeasible action ending the episode.
+    return 0
+

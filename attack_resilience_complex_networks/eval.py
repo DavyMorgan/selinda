@@ -19,7 +19,7 @@ flags.DEFINE_bool('tmp', False, 'Whether to use temporary storage.')
 flags.DEFINE_bool('debug', False, 'Whether to use debug mode.')
 flags.DEFINE_enum('agent', None,
                   ['random', 'degree', 'resilience', 'pagerank', 'domirank', 'finder', 'gdm', 'gnd', 'ei', 'ci', 'corehd',
-                   'pagerank-state', 'eigen-state', 'state',
+                   'pagerank-state', 'eigen-state', 'state', 'rc-state',
                    'selinda-dynamic', 'selinda-topology', 'selinda-homogeneous', 'rl-gnn'],
                   'Agent type.')
 flags.DEFINE_bool('oneshot', False, 'Whether to use oneshot test.')
