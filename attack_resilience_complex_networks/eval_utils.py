@@ -78,6 +78,9 @@ def get_agent(cfg: Config,
     elif cfg.agent == 'pagerank':
         from attack_resilience_complex_networks.agent.pagerank import PY_PAGERANK
         agent = PY_PAGERANK()
+    elif cfg.agent == 'domirank':
+        from attack_resilience_complex_networks.agent.domirank import PY_DOMIRANK
+        agent = PY_DOMIRANK()
     elif cfg.agent == 'finder':
         from attack_resilience_complex_networks.agent.finder import PY_FINDER
         agent = PY_FINDER(reinsertion=reinsertion)
@@ -173,7 +176,7 @@ def evaluate_gdm(agent, env: EvalCN) \
 def evaluate_finder(agent, env: EvalCN) \
         -> Tuple[float, float, List[int], int, Tuple[Union[float, List[float]], Union[float, List[float]], Union[float, List[float]], Union[float, List[float]], Union[float, List[float]]]]:
     obs, _ = env.reset()
-    if env.cfg.agent in ['pagerank', 'finder', 'gnd', 'ei', 'ci', 'corehd', 'selinda-topology']:
+    if env.cfg.agent in ['pagerank', 'domirank', 'finder', 'gnd', 'ei', 'ci', 'corehd', 'selinda-topology']:
         g = env.get_topology()
         nx.set_edge_attributes(g, 1.0, 'weight')
         if env.cfg.agent == 'finder' and FLAGS.oneshot:
@@ -192,7 +195,7 @@ def evaluate_finder(agent, env: EvalCN) \
 def evaluate_baseline(
         agent,
         env: EvalCN) -> Tuple[float, float, List[int], int, Optional[Tuple]]:
-    if env.cfg.agent in ['pagerank', 'finder', 'gnd', 'ei', 'ci', 'corehd', 'selinda-topology'] or FLAGS.oneshot:
+    if env.cfg.agent in ['pagerank', 'domirank', 'finder', 'gnd', 'ei', 'ci', 'corehd', 'selinda-topology'] or FLAGS.oneshot:
         return evaluate_finder(agent, env)
     else:
         obs, _ = env.reset()
