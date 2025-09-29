@@ -99,6 +99,9 @@ def get_agent(cfg: Config,
     elif cfg.agent == 'corehd':
         from attack_resilience_complex_networks.agent.corehd import PY_COREHD
         agent = PY_COREHD()
+    elif cfg.agent == 'pagerank-state':
+        from attack_resilience_complex_networks.agent.pagerank_state import pagerank_state
+        agent = pagerank_state
     elif cfg.agent == 'selinda-dynamic':
         from attack_resilience_complex_networks.agent.symbolic_regression import sr
         agent = sr
@@ -204,7 +207,12 @@ def evaluate_baseline(
         num_nodes = env.get_num_nodes()
         with tqdm(total=num_nodes) as pbar:
             while not done:
-                action = agent(obs)
+                if env.cfg.agent in ['pagerank-state']:
+                    g = env.get_topology()
+                    nx.set_edge_attributes(g, 1.0, 'weight')
+                    action = agent(g, obs)
+                else:
+                    action = agent(obs)
                 obs, reward, terminated, truncated, info = env.step(action)
                 done = terminated or truncated
                 pbar.update(1)
