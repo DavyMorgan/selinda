@@ -5,7 +5,6 @@ python -m attack_resilience_complex_networks.train \
   --val_freq 4000 \
   --save_freq 4000 \
   --noearly_stop \
-  --agent rl-gnn \
   --has_dynamics \
   --num_envs 100 \
   --lr 0.0004 \
