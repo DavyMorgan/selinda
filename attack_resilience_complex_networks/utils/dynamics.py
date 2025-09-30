@@ -1,4 +1,4 @@
-from typing import Dict, Callable, Tuple, Optional, Union
+from typing import Callable, Union
 
 import numpy as np
 
@@ -53,9 +53,31 @@ def neuronal_dynamics_np(
     return f
 
 
+def epidemic_dynamics_np(
+        t,
+        x,
+        a: np.ndarray,
+        b: Union[float, np.ndarray] = 6.0) -> np.ndarray:
+    """
+    SIS epidemic dynamics
+
+    :param t: time
+    :param x: initial value:  is 1d row vector feature, n
+    :param a: adjacency matrix
+    :param b: strength of the self-recovery
+    :return:
+    dx/dt = -b x_i + (1 - x_i) sum_{j=1}^n a_{ij} x_j
+    """
+    self_dynamics = -b * x
+    interaction = (1 - x) * np.dot(a, x)
+    f = self_dynamics + interaction
+    return f
+
+
 def load_dynamics(dynamics_type: str) -> Callable:
     dynamic_map = {
         'gene': gene_dynamics_np,
+        'epidemic': epidemic_dynamics_np,
         'neuron': neuronal_dynamics_np,
     }
     dynamics = dynamic_map[dynamics_type]

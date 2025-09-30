@@ -118,7 +118,7 @@ class ComplexNetworkClient:
             dynamics_params[key] = np.full(num_nodes, value)
             if self.dynamics_vec_params is None:
                 continue
-            if self.dynamics_type in ['gene', 'neuron']:
+            if self.dynamics_type in ['gene', 'neuron', 'epidemic']:
                 if key == 'b':
                     if self.dynamics_vec_params == 'powerlaw':
                         power_params(key)
@@ -221,7 +221,7 @@ class ComplexNetworkClient:
         """
         :return: current proxy
         """
-        if self.dynamics_type in ['gene', 'neuron']:
+        if self.dynamics_type in ['gene', 'neuron', 'epidemic']:
             return compute_beta_np(self._current_topology_slim)
         elif self.dynamics_type is None:
             return self.compute_robustness()
@@ -279,6 +279,25 @@ class ComplexNetworkClient:
             resilience = True
         return resilience, (t_eval, trajectory), stable_state
 
+    def _simulate_resilience_epidemic(self, dynamics: Callable, num_nodes: int) \
+            -> Tuple[bool, Tuple[np.ndarray, np.ndarray], np.ndarray]:
+        x0 = np.ones(num_nodes) * 0.5
+        result = solve_ivp(
+            dynamics,
+            (0.0, self.cfg.env_specs['stable_t']),
+            x0,
+            method=self.cfg.env_specs['ode_method'])
+        t_eval = result.t
+        idx = np.argmax(t_eval > self.cfg.env_specs['stable_t'] - 10)
+        trajectory = result.y
+        stable_state = trajectory[:, idx:].mean(axis=1)
+        mean_stable_state = stable_state.mean()
+        if mean_stable_state < 1e-5:
+            resilience = False
+        else:
+            resilience = True
+        return resilience, (t_eval, trajectory), stable_state
+
     def _simulate_resilience_neuron(self, dynamics: Callable, num_nodes: int) \
             -> Tuple[bool, Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray]]:
         t_eval_lo, t_eval_hi, trajectory_lo, trajectory_hi, stable_state_lo, stable_state_hi = \
@@ -299,6 +318,8 @@ class ComplexNetworkClient:
             return self._simulate_resilience_gene(dynamics, num_nodes)
         elif self.dynamics_type == 'neuron':
             return self._simulate_resilience_neuron(dynamics, num_nodes)
+        elif self.dynamics_type == 'epidemic':
+            return self._simulate_resilience_epidemic(dynamics, num_nodes)
         else:
             raise NotImplementedError
 
@@ -356,6 +377,9 @@ class ComplexNetworkClient:
             stable_state_lo, stable_state_hi = self._stable_state
             mean_state = (stable_state_lo.mean(), stable_state_hi.mean())
         elif self.dynamics_type == 'gene':
+            stable_state = self._stable_state
+            mean_state = stable_state.mean()
+        elif self.dynamics_type == 'epidemic':
             stable_state = self._stable_state
             mean_state = stable_state.mean()
         else:
@@ -470,6 +494,9 @@ class ComplexNetworkClient:
             else:
                 stable_state = stable_state_hi
         elif self.dynamics_type == 'gene':
+            t_eval, trajectory = self._traj
+            stable_state = self._stable_state
+        elif self.dynamics_type == 'epidemic':
             t_eval, trajectory = self._traj
             stable_state = self._stable_state
         else:

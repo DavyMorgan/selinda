@@ -40,7 +40,7 @@ def load_topology(filename: str, graph_type: str, dynamics_type: str, scale: flo
         with gzip.open(filename, 'rb') as f:
             topology_dict = pickle.load(f)
         topology = topology_dict[graph_type]
-        if dynamics_type in ['gene', 'neuron']:
+        if dynamics_type in ['gene', 'neuron', 'epidemic']:
             g = nx.from_numpy_array(topology)
             gcc = np.array(list(max(nx.connected_components(g), key=len)))
             g.remove_nodes_from(np.setdiff1d(np.arange(topology.shape[0]), gcc))
