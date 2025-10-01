@@ -50,11 +50,12 @@ def get_model_path_rl_eval_env(cfg: Config, eval_env: EvalCN, model_path: Option
 
 
 def get_model(cfg: Config,
-              env: DummyVecEnv) -> PPO:
+              env: DummyVecEnv,
+              explain: bool=False) -> PPO:
     from attack_resilience_complex_networks.agent.policy import MaskedActorCriticPolicy
     from attack_resilience_complex_networks.utils.policy import get_policy_kwargs
     num_node_features = env.env_method('get_num_node_features')[0]
-    policy_kwargs = get_policy_kwargs(cfg, num_node_features)
+    policy_kwargs = get_policy_kwargs(cfg, explain=explain)
     model = PPO(MaskedActorCriticPolicy,
                 env,
                 verbose=1,

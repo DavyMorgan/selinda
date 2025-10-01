@@ -22,14 +22,13 @@ FLAGS = flags.FLAGS
 def get_explain_policy(cfg: Config,
                        env: Union[DummyVecEnv, VecNormalize],
                        model_path: Optional[str]) -> ExplainPolicy:
-    test_model = get_model(cfg, env)
+    test_model = get_model(cfg, env, explain=False)
     if model_path:
         trained_model = PPO.load(model_path)
         test_model.set_parameters(trained_model.get_parameters())
     agent = test_model
     params = agent.policy.state_dict()
-    num_node_features = env.env_method('get_num_node_features')[0]
-    policy_kwargs = get_policy_kwargs(cfg, num_node_features, explain=True, observation_space=env.observation_space)
+    policy_kwargs = get_policy_kwargs(cfg, explain=True, observation_space=env.observation_space)
     device = test_model.policy.device
     if not FLAGS.explain_value:
         explain_agent = ExplainPolicy(device, **policy_kwargs)
@@ -47,7 +46,7 @@ def prepare_explain_sr() -> Tuple[Config, float, EvalCN, ExplainPolicy]:
     np.random.seed(FLAGS.global_seed)
     random.seed(FLAGS.global_seed)
 
-    cfg = Config(FLAGS.cfg, FLAGS.global_seed, FLAGS.tmp, FLAGS.root_dir, FLAGS.agent)
+    cfg = Config(FLAGS.cfg, FLAGS.global_seed, FLAGS.tmp, FLAGS.root_dir)
     budget, eval_env = get_budget_env(cfg)
 
     assert cfg.agent.startswith('rl')
