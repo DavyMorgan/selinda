@@ -43,31 +43,29 @@ def main(_):
         _, attacked_nodes, sr_data = test_core()
         label_y = np.full(eval_env.get_num_nodes(), -1)
         label_y[attacked_nodes] = 1
-        if not FLAGS.explain_value:
-            step_y = np.zeros(len(attacked_nodes), dtype=np.int32)
-        else:
+        if FLAGS.explain_value:
             step_y = np.zeros(len(attacked_nodes) + 1, dtype=np.int32)
-        step_y[-1] = 1
+            step_y[-1] = 1
     else:
         eval_env.reset_instance_id()
         sr_data = []
         label_y = []
-        step_y = []
+        if FLAGS.explain_value:
+            step_y = []
         for _ in range(FLAGS.num_instances):
             _, instance_attacked_nodes, instance_sr_data = test_core()
             sr_data.append(instance_sr_data)
             instance_label_y = np.full(eval_env.get_num_nodes(), -1)
             instance_label_y[instance_attacked_nodes] = 1
             label_y.append(instance_label_y)
-            if not FLAGS.explain_value:
-                instance_step_y = np.zeros(len(instance_attacked_nodes), dtype=np.int32)
-            else:
+            if FLAGS.explain_value:
                 instance_step_y = np.zeros(len(instance_attacked_nodes) + 1, dtype=np.int32)
-            instance_step_y[-1] = 1
-            step_y.append(instance_step_y)
+                instance_step_y[-1] = 1
+                step_y.append(instance_step_y)
         sr_data = batch_sr_data(sr_data)
         label_y = np.concatenate(label_y)
-        step_y = np.concatenate(step_y)
+        if FLAGS.explain_value:
+            step_y = np.concatenate(step_y)
 
     if not FLAGS.explain_value:
         sr_data_x, sr_data_logit_y, sr_data_prob_y, sr_data_pair_pos_neg = sr_data
@@ -77,7 +75,9 @@ def main(_):
 
     sr_data = sr_data_x.copy()
     sr_data['logit_y'] = sr_data_logit_y
-    sr_data['step_y'] = step_y
+
+    if FLAGS.explain_value:
+        sr_data['step_y'] = step_y
     if not FLAGS.explain_value:
         sr_data['prob_y'] = sr_data_prob_y
         sr_data['pair_pos_neg'] = sr_data_pair_pos_neg
@@ -90,6 +90,5 @@ if __name__ == '__main__':
     flags.mark_flags_as_required([
         'cfg',
         'global_seed',
-        'agent'
     ])
     app.run(main)
