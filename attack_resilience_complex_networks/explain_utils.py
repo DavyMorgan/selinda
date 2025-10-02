@@ -80,6 +80,10 @@ def compute_sr_x(obs: Dict[str, np.ndarray], env: EvalCN) -> pd.DataFrame:
             weighted_degree = node_features[:, 1]
             kcore = node_features[:, 2]
             weighted_kcore = node_features[:, 3]
+            cc = node_features[:, 4]
+            weighted_cc = node_features[:, 5]
+            pr = node_features[:, 6]
+            weighted_pr = node_features[:, 7]
             betweenness = node_features[:, 8]
             weighted_betweenness = node_features[:, 9]
             sr_x = pd.DataFrame(
@@ -87,6 +91,10 @@ def compute_sr_x(obs: Dict[str, np.ndarray], env: EvalCN) -> pd.DataFrame:
                  'w_d': weighted_degree,
                  'k': kcore,
                  'w_k': weighted_kcore,
+                 'c': cc,
+                 'w_c': weighted_cc,
+                 'p': pr,
+                 'w_p': weighted_pr,
                  'b': betweenness,
                  'w_b': weighted_betweenness}
             )
