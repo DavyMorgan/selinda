@@ -36,11 +36,11 @@ def main(_):
         num_nodes_after_attack = eval_env.get_current_num_nodes()
         eval_time = time.time() - start_time
         report_eval(eval_time, cfg, eval_env, budget, mean_reward, _attacked_nodes, num_nodes_after_attack)
-        return _episode_data, _attacked_nodes, _sr_data
+        return _episode_data, _attacked_nodes, _sr_data, mean_reward
 
     start_time = time.time()
     if FLAGS.num_instances is None:
-        _, attacked_nodes, sr_data = test_core()
+        _, attacked_nodes, sr_dat, _a = test_core()
         label_y = np.full(eval_env.get_num_nodes(), -1)
         label_y[attacked_nodes] = 1
         if FLAGS.explain_value:
@@ -52,8 +52,10 @@ def main(_):
         label_y = []
         if FLAGS.explain_value:
             step_y = []
+        rewards = []
         for _ in range(FLAGS.num_instances):
-            _, instance_attacked_nodes, instance_sr_data = test_core()
+            _, instance_attacked_nodes, instance_sr_data, reward = test_core()
+            rewards.append(reward)
             sr_data.append(instance_sr_data)
             instance_label_y = np.full(eval_env.get_num_nodes(), -1)
             instance_label_y[instance_attacked_nodes] = 1
@@ -62,6 +64,8 @@ def main(_):
                 instance_step_y = np.zeros(len(instance_attacked_nodes) + 1, dtype=np.int32)
                 instance_step_y[-1] = 1
                 step_y.append(instance_step_y)
+        print(f"Rewards: {rewards}")
+        print(f"Mean reward: {sum(rewards)/len(rewards)}")
         sr_data = batch_sr_data(sr_data)
         label_y = np.concatenate(label_y)
         if FLAGS.explain_value:
