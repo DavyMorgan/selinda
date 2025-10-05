@@ -15,7 +15,9 @@ input_gt_files = [
     "soc-Epinions1",
     "douban",
     "com-dblp",
-    "com-amazon"
+    "com-amazon",
+    "foodweb-baydry",
+    "foodweb-baywet"
 ]
 
 def convert_core(dataset):
