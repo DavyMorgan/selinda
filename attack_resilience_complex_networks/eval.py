@@ -116,6 +116,10 @@ def main(_):
             }
             with open(f'{FLAGS.root_dir}/early_warning.pkl', 'wb') as f:
                 pickle.dump(save_dict, f)
+            for alarm_point in [0.3, 0.4, 0.5, 0.6, 0.7]:
+                alarm_step = np.where(ew_score >= alarm_point)[0][0]
+                relative_lead_time = (len(ew_score) - alarm_step) / len(ew_score)
+                print(f'\t alarm point: {alarm_point}, alarm step: {alarm_step}, relative lead time: {relative_lead_time}')
     else:
         eval_env.reset_instance_id()
         overall_eval_time = 0.0
