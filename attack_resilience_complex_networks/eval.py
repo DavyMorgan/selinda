@@ -118,7 +118,7 @@ def main(_):
                 pickle.dump(save_dict, f)
             for alarm_point in [0.3, 0.4, 0.5, 0.6, 0.7]:
                 alarm_step = np.where(ew_score >= alarm_point)[0][0]
-                relative_lead_time = (len(ew_score) - alarm_step) / len(ew_score)
+                relative_lead_time = (len(ew_score) - alarm_step - 1) / len(ew_score)
                 print(f'\t alarm point: {alarm_point}, alarm step: {alarm_step}, relative lead time: {relative_lead_time}')
     else:
         eval_env.reset_instance_id()
