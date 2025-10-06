@@ -47,7 +47,7 @@ def main(_):
         assert FLAGS.num_instances == 0
         custom_agent = FLAGS.agent
         if FLAGS.has_dynamics:
-            assert FLAGS.agent in ['selinda-dynamic', 'selinda-dynamic-reverse']
+            FLAGS.agent = 'selinda-dynamic'
         else:
             FLAGS.agent = 'selinda-topology'
         cfg = Config(FLAGS.cfg, FLAGS.global_seed, FLAGS.tmp, FLAGS.root_dir, FLAGS.agent)
