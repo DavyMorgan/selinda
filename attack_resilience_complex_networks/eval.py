@@ -108,7 +108,7 @@ def main(_):
         mean_reward, eval_time, attacked_nodes, network_proxy = test_core()
         if FLAGS.early_warning:
             ew_score = sr_score[attacked_nodes]
-            print(f'\t Orinal early warning score: {ew_score}')
+            print(f'\t Orinal early warning score: {ew_score.cumsum() / ew_thres}')
             ew_score = np.clip(ew_score.cumsum() / ew_thres, 0, 1)
             print(f'\t Clipped early warning score: {ew_score}')
             save_dict = {
