@@ -20,7 +20,7 @@ flags.DEFINE_bool('debug', False, 'Whether to use debug mode.')
 flags.DEFINE_enum('agent', None,
                   ['random', 'degree', 'resilience', 'pagerank', 'domirank', 'finder', 'gdm', 'gnd', 'ei', 'ci', 'corehd',
                    'pagerank-state', 'eigen-state', 'state', 'rc-state',
-                   'selinda-dynamic', 'selinda-topology', 'selinda-homogeneous', 'rl-gnn'],
+                   'selinda-dynamic', 'selinda-topology', 'selinda-homogeneous', 'rl-gnn', 'selinda-dynamic-reverse'],
                   'Agent type.')
 flags.DEFINE_bool('oneshot', False, 'Whether to use oneshot test.')
 flags.DEFINE_bool('reinsertion', False, 'Whether to use reinsertion.')
@@ -40,14 +40,14 @@ def main(_):
     print('start evaluation.')
     set_proc_and_seed(FLAGS.global_seed)
 
-    if FLAGS.agent in ['resilience', 'selinda-homogeneous', 'selinda-dynamic']:
+    if FLAGS.agent in ['resilience', 'selinda-homogeneous', 'selinda-dynamic', 'selinda-dynamic-reverse']:
         assert FLAGS.has_dynamics
 
     if FLAGS.early_warning:
         assert FLAGS.num_instances == 0
         custom_agent = FLAGS.agent
         if FLAGS.has_dynamics:
-            FLAGS.agent = 'selinda-dynamic'
+            assert FLAGS.agent in ['selinda-dynamic', 'selinda-dynamic-reverse']
         else:
             FLAGS.agent = 'selinda-topology'
         cfg = Config(FLAGS.cfg, FLAGS.global_seed, FLAGS.tmp, FLAGS.root_dir, FLAGS.agent)

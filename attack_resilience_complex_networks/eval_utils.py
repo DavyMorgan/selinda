@@ -115,6 +115,9 @@ def get_agent(cfg: Config,
     elif cfg.agent == 'selinda-dynamic':
         from attack_resilience_complex_networks.agent.symbolic_regression import sr
         agent = sr
+    elif cfg.agent == 'selinda-dynamic-reverse':
+        from attack_resilience_complex_networks.agent.symbolic_regression import sr_reverse
+        agent = sr_reverse
     elif cfg.agent == 'selinda-topology':
         from attack_resilience_complex_networks.agent.sr import PY_SR
         agent = PY_SR(use_reinsert=reinsertion)
