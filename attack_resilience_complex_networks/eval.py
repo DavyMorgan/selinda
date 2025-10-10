@@ -4,6 +4,7 @@ import time
 from typing import Tuple, List
 
 import numpy as np
+from scipy.stats import pearsonr
 import torch as th
 
 from attack_resilience_complex_networks.eval_utils import (evaluate, get_agent, report_eval,
@@ -33,6 +34,7 @@ flags.DEFINE_multi_integer('protected_nodes', None, 'The protected nodes.')
 flags.DEFINE_multi_integer('pre_attacked_nodes', None, 'The nodes that have been attacked before the episode.')
 flags.DEFINE_bool('case_study', False, 'Whether to print d and h values for case study.')
 flags.DEFINE_bool('early_warning', False, 'Whether to study early warning.')
+flags.DEFINE_bool('report_ds_corr', False, 'Whether to report the correlation between d and s.')
 FLAGS = flags.FLAGS
 
 
@@ -104,35 +106,57 @@ def main(_):
             _network_proxy = None
         return _mean_reward, case_time, attacked_nodes, _network_proxy
 
-    if FLAGS.num_instances == 0:
-        mean_reward, eval_time, attacked_nodes, network_proxy = test_core()
-        if FLAGS.early_warning:
-            ew_score = sr_score[attacked_nodes]
-            print(f'\t Orinal early warning score: {ew_score.cumsum() / ew_thres}')
-            ew_score = np.clip(ew_score.cumsum() / ew_thres, 0, 1)
-            print(f'\t Clipped early warning score: {ew_score}')
-            save_dict = {
-                'network_proxy': network_proxy,
-                'ew_score': ew_score
-            }
-            with open(f'{FLAGS.root_dir}/early_warning.pkl', 'wb') as f:
-                pickle.dump(save_dict, f)
-            for alarm_point in [0.3, 0.4, 0.5, 0.6, 0.7]:
-                alarm_step = np.where(ew_score >= alarm_point)[0][0]
-                relative_lead_time = (len(ew_score) - alarm_step - 1) / len(ew_score)
-                print(f'\t alarm point: {alarm_point}, alarm step: {alarm_step}, relative lead time: {relative_lead_time}')
+    if not FLAGS.report_ds_corr:
+        if FLAGS.num_instances == 0:
+            mean_reward, eval_time, attacked_nodes, network_proxy = test_core()
+            if FLAGS.early_warning:
+                ew_score = sr_score[attacked_nodes]
+                print(f'\t Orinal early warning score: {ew_score.cumsum() / ew_thres}')
+                ew_score = np.clip(ew_score.cumsum() / ew_thres, 0, 1)
+                print(f'\t Clipped early warning score: {ew_score}')
+                save_dict = {
+                    'network_proxy': network_proxy,
+                    'ew_score': ew_score
+                }
+                with open(f'{FLAGS.root_dir}/early_warning.pkl', 'wb') as f:
+                    pickle.dump(save_dict, f)
+                for alarm_point in [0.3, 0.4, 0.5, 0.6, 0.7]:
+                    alarm_step = np.where(ew_score >= alarm_point)[0][0]
+                    relative_lead_time = (len(ew_score) - alarm_step - 1) / len(ew_score)
+                    print(f'\t alarm point: {alarm_point}, alarm step: {alarm_step}, relative lead time: {relative_lead_time}')
+        else:
+            eval_env.reset_instance_id()
+            overall_eval_time = 0.0
+            for _ in range(FLAGS.num_instances):
+                mean_reward, eval_time, _, _ = test_core()
+                overall_eval_time = overall_eval_time + eval_time
+                all_results.append(mean_reward)
+            print(f'all results: {all_results}')
+            print(f'sum: {sum(all_results)}')
+            print(f'avg: {sum(all_results)/len(all_results)}')
+            print(f'eval time: {overall_eval_time}')
+            print(f'avg eval time: {overall_eval_time/len(all_results)}')
     else:
+        assert FLAGS.has_dynamics
+        assert FLAGS.num_instances > 0
+        assert FLAGS.agent == 'selinda-dynamic'
         eval_env.reset_instance_id()
-        overall_eval_time = 0.0
+        ds_corr_list = []
         for _ in range(FLAGS.num_instances):
-            mean_reward, eval_time, _, _ = test_core()
-            overall_eval_time = overall_eval_time + eval_time
-            all_results.append(mean_reward)
-        print(f'all results: {all_results}')
-        print(f'sum: {sum(all_results)}')
-        print(f'avg: {sum(all_results)/len(all_results)}')
-        print(f'eval time: {overall_eval_time}')
-        print(f'avg eval time: {overall_eval_time/len(all_results)}')
+            obs, _ = eval_env.reset()
+            node_features = obs['node_features']
+            action_mask = obs['action_mask']
+            valid_actions, = np.nonzero(action_mask)
+            degree_ = node_features[:, 0][valid_actions]
+            stable_state_ = node_features[:, -4][valid_actions]
+            corr = pearsonr(degree_, stable_state_).statistic
+            ds_corr_list.append(corr)
+            print(f'instance {_}, d-s corr: {corr}')
+        print(f'average d-s corr: {np.mean(ds_corr_list)}')
+        print(f'std d-s corr: {np.std(ds_corr_list)}')
+        print(f'min d-s corr: {np.min(ds_corr_list)}')
+        print(f'max d-s corr: {np.max(ds_corr_list)}')
+        print(f'all d-s corr: {ds_corr_list}')
 
 
 if __name__ == '__main__':
