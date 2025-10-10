@@ -4,6 +4,7 @@ from typing import Union, Tuple, Optional, Dict
 
 import networkx as nx
 import numpy as np
+import pandas as pd
 import scipy.sparse as sp
 
 
@@ -51,9 +52,47 @@ def load_topology(filename: str, graph_type: str, dynamics_type: str, scale: flo
         topology *= scale
         topology = nx.from_numpy_array(topology)
         return topology
+    elif filename.endswith('.csv'):
+        topology = pd.read_csv(filename).to_numpy()
+        topology = generate_projection_net(topology)
+        g = nx.from_numpy_array(topology)
+        gcc = np.array(list(max(nx.connected_components(g), key=len)))
+        g.remove_nodes_from(np.setdiff1d(np.arange(topology.shape[0]), gcc))
+        g = nx.convert_node_labels_to_integers(g)
+        topology = nx.to_numpy_array(g)
+        topology *= scale
+        topology = nx.from_numpy_array(topology)
+        return topology
     else:
         assert filename.endswith('.txt')
         topology = nx.read_edgelist(filename)
         topology = nx.convert_node_labels_to_integers(topology)
         nx.set_edge_attributes(topology, 1.0, 'weight')
         return topology
+
+
+def generate_projection_net(m: np.ndarray) -> np.ndarray:
+    """
+    :param m: bipartite graph adjacency matrix
+    :param axis: axis to project on
+    :return: projection graph adjacency matrix
+    """
+
+    axis = 0
+    m_sum = m / (m.sum(axis=axis, keepdims=True) + 1e-8)
+
+    memory_cost = m_sum.shape[0] * m_sum.shape[0] * m_sum.shape[1] * 8 / 1024 / 1024
+    if memory_cost > 50:
+        g = np.zeros((m.shape[axis], m.shape[axis]), dtype=np.float64)
+        for i in range(0, g.shape[0] - 1):
+            for j in range(i + 1, g.shape[0]):
+                mij = np.sum((m_sum[i] * m_sum[j] != 0) * (m_sum[i] + m_sum[j]))
+                g[i, j] = mij
+                g[j, i] = mij
+    else:
+        mask = (m_sum[:, None, :] * m_sum[None, :, :] != 0).astype(np.float64)
+        interaction = m_sum[:, None, :] + m_sum[None, :, :]
+        g = (mask * interaction).sum(-1)
+        g = g - np.diag(np.diag(g))
+
+    return g

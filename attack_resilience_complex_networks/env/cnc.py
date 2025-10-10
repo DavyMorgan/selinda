@@ -117,8 +117,17 @@ class ComplexNetworkClient:
         for key, value in self.dynamics_params_base.items():
             dynamics_params[key] = np.full(num_nodes, value)
             if self.dynamics_vec_params is None:
+                if self.dynamics_type == 'mutualistic':
+                    dynamics_params[key] = dynamics_params[key].reshape(-1, 1)
                 continue
-            if self.dynamics_type in ['gene', 'neuron', 'epidemic']:
+            if self.dynamics_type == 'mutualistic':
+                if self.dynamics_vec_params == 'powerlaw':
+                    if key == 'b':
+                        power_params(key)
+                else:
+                    raise ValueError(f'Unknown dynamics vector parameters: {self.dynamics_vec_params}.')
+                dynamics_params[key] = dynamics_params[key].reshape(-1, 1)
+            elif self.dynamics_type in ['gene', 'neuron', 'epidemic']:
                 if key == 'b':
                     if self.dynamics_vec_params == 'powerlaw':
                         power_params(key)
@@ -221,7 +230,7 @@ class ComplexNetworkClient:
         """
         :return: current proxy
         """
-        if self.dynamics_type in ['gene', 'neuron', 'epidemic']:
+        if self.dynamics_type in ['gene', 'neuron', 'epidemic', 'mutualistic']:
             return compute_beta_np(self._current_topology_slim)
         elif self.dynamics_type is None:
             return self.compute_robustness()
@@ -308,6 +317,16 @@ class ComplexNetworkClient:
             resilience = False
         return resilience, (t_eval_lo, t_eval_hi, trajectory_lo, trajectory_hi), (stable_state_lo, stable_state_hi)
 
+    def _simulate_resilience_mutualistic(self, dynamics: Callable, num_nodes: int) \
+            -> Tuple[bool, Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray]]:
+        t_eval_lo, t_eval_hi, trajectory_lo, trajectory_hi, stable_state_lo, stable_state_hi = \
+            self._get_traj_and_stable_state_neuron(dynamics, num_nodes)
+        if np.min(np.abs(stable_state_hi - stable_state_lo)) > 0.1:
+            resilience = False
+        else:
+            resilience = True
+        return resilience, (t_eval_lo, t_eval_hi, trajectory_lo, trajectory_hi), (stable_state_lo, stable_state_hi)
+
     def _simulate_resilience(self, dynamics: Callable, num_nodes: int) \
             -> Tuple[
                 bool,
@@ -320,6 +339,8 @@ class ComplexNetworkClient:
             return self._simulate_resilience_neuron(dynamics, num_nodes)
         elif self.dynamics_type == 'epidemic':
             return self._simulate_resilience_epidemic(dynamics, num_nodes)
+        elif self.dynamics_type == 'mutualistic':
+            return self._simulate_resilience_mutualistic(dynamics, num_nodes)
         else:
             raise NotImplementedError
 
@@ -382,6 +403,9 @@ class ComplexNetworkClient:
         elif self.dynamics_type == 'epidemic':
             stable_state = self._stable_state
             mean_state = stable_state.mean()
+        elif self.dynamics_type == 'mutualistic':
+            stable_state_lo, stable_state_hi = self._stable_state
+            mean_state = (stable_state_lo.mean(), stable_state_hi.mean())
         else:
             raise NotImplementedError
         return mean_state
@@ -499,6 +523,15 @@ class ComplexNetworkClient:
         elif self.dynamics_type == 'epidemic':
             t_eval, trajectory = self._traj
             stable_state = self._stable_state
+        elif self.dynamics_type == 'mutualistic':
+            t_eval, _, trajectory, _ = self._traj
+            stable_state_lo, stable_state_hi = self._stable_state
+            if return_state == 'mean':
+                stable_state = (stable_state_lo + stable_state_hi) / 2
+            elif return_state == 'lo':
+                stable_state = stable_state_lo
+            else:
+                stable_state = stable_state_hi
         else:
             raise NotImplementedError
         return stable_state, trajectory, t_eval
