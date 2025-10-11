@@ -124,6 +124,16 @@ class ComplexNetworkClient:
                 if self.dynamics_vec_params == 'powerlaw':
                     if key == 'b':
                         power_params(key)
+                elif self.dynamics_vec_params in ['degree-positive', 'degree-negative']:
+                    normalized_degree = (degree - np.min(degree)) / (np.max(degree) - np.min(degree))
+                    scale = 0.5 + normalized_degree
+                    reverse_scale = 1.5 - normalized_degree
+                    b_k_scale = scale if self.dynamics_vec_params == 'degree-positive' else reverse_scale
+                    c_d_scale = reverse_scale if self.dynamics_vec_params == 'degree-positive' else scale
+                    if key in ['b', 'k']:
+                        dynamics_params[key] = b_k_scale * value
+                    elif key in ['c', 'd']:
+                        dynamics_params[key] = c_d_scale * value
                 else:
                     raise ValueError(f'Unknown dynamics vector parameters: {self.dynamics_vec_params}.')
                 dynamics_params[key] = dynamics_params[key].reshape(-1, 1)
