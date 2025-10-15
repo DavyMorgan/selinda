@@ -1,18 +1,15 @@
 # env
 env_specs:
   ode_method: RK45
-  topology_filename: data/ecology_supply_chain/network_11.csv
-  graph_type: plant
-  graph_scale: 1.0
-  dynamics_type: mutualistic
+  topology_filename: data/synthetic/synthetic_n_degree-6.gz
+  graph_type: SF-uniform_node-80_degree-6_weight-1.0_gamma-2.0_nu-2.0_seed-0
+  graph_scale: 0.8
+  dynamics_type: gene
   dynamics_params:
-    b: 0.1
-    k: 5.0
-    c: 1.0
-    d: 5.0
-    e: 0.9
-    h: 0.1
-  dynamics_vec_params: degree-negative
+    b: 1.0
+    f: 1.0
+    h: 2.0
+  dynamics_vec_params: powerlaw
   target_dynamics_params:
     num_altered_nodes: 3
     seed: 19
@@ -23,7 +20,7 @@ env_specs:
     powerlaw:
       a: 1.5
       loc: 0.1
-      scale: 0.1
+      scale: 2.0
   beta_effc: 2.00
   budget: 1.0
   stable_t: 400.0
@@ -36,10 +33,6 @@ eval_specs:
 
 # agent
 agent_specs:
-  obs_steps: 63
-  obs_delta: 0.05
-  obs_stable_t: 20.0
-  th_ode_method: dopri5
   policy_feature_dim: 32
   value_feature_dim: 32
   policy_hidden_units: !!python/tuple [32, 32, 1]
@@ -51,5 +44,5 @@ mlp_specs:
 
 # gnn
 gnn_specs:
-  num_gnn_layers: 2
+  num_gnn_layers: 0
   node_dim: 32

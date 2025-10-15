@@ -3,6 +3,7 @@ import pickle
 import time
 from typing import Tuple, List
 
+import networkx as nx
 import numpy as np
 from scipy.stats import pearsonr
 import torch as th
@@ -35,6 +36,7 @@ flags.DEFINE_multi_integer('pre_attacked_nodes', None, 'The nodes that have been
 flags.DEFINE_bool('case_study', False, 'Whether to print d and h values for case study.')
 flags.DEFINE_bool('early_warning', False, 'Whether to study early warning.')
 flags.DEFINE_bool('report_ds_corr', False, 'Whether to report the correlation between d and s.')
+flags.DEFINE_bool('report_articulation', False, 'Whether to report the articulation points.')
 FLAGS = flags.FLAGS
 
 
@@ -105,6 +107,26 @@ def main(_):
         else:
             _network_proxy = None
         return _mean_reward, case_time, attacked_nodes, _network_proxy
+
+    if FLAGS.report_articulation:
+        assert not FLAGS.has_dynamics
+        assert FLAGS.agent in ['degree', 'pagerank', 'selinda-topology']
+        assert FLAGS.num_instances <= 1
+        eval_env.reset_instance_id()
+        obs, _ = eval_env.reset()
+        node_features = obs['node_features']
+        action_mask = obs['action_mask']
+        valid_actions, = np.nonzero(action_mask)
+        degree_ = node_features[:, 0][valid_actions]
+        avg_neighbor_degree = node_features[:, 1][valid_actions]
+        score = degree_ ** 2 / (avg_neighbor_degree.clip(min=1))
+        rank = np.argsort(np.argsort(-score))
+        topology = eval_env.get_topology()
+        articulation_points = list(nx.articulation_points(topology))
+        print(f'articulation points: {set(articulation_points).intersection(set(valid_actions))}')
+        print(f'number of articulation points: {len(articulation_points)}')
+        print(f'rank of articulation points: {sorted(rank[articulation_points])}')
+        return
 
     if not FLAGS.report_ds_corr:
         if FLAGS.num_instances == 0:
