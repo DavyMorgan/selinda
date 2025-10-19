@@ -50,11 +50,12 @@ def get_model_path_rl_eval_env(cfg: Config, eval_env: EvalCN, model_path: Option
 
 
 def get_model(cfg: Config,
-              env: DummyVecEnv) -> PPO:
+              env: DummyVecEnv,
+              explain: bool=False) -> PPO:
     from attack_resilience_complex_networks.agent.policy import MaskedActorCriticPolicy
     from attack_resilience_complex_networks.utils.policy import get_policy_kwargs
     num_node_features = env.env_method('get_num_node_features')[0]
-    policy_kwargs = get_policy_kwargs(cfg, num_node_features)
+    policy_kwargs = get_policy_kwargs(cfg, explain=explain)
     model = PPO(MaskedActorCriticPolicy,
                 env,
                 verbose=1,
@@ -64,7 +65,8 @@ def get_model(cfg: Config,
 
 def get_agent(cfg: Config,
               env: Optional[Union[DummyVecEnv, VecNormalize]],
-              model_path: Optional[str]):
+              model_path: Optional[str],
+              reinsertion: bool = False):
     if cfg.agent == 'random':
         from attack_resilience_complex_networks.agent.heuristic import random_policy
         agent = random_policy
@@ -74,30 +76,51 @@ def get_agent(cfg: Config,
     elif cfg.agent == 'resilience':
         from attack_resilience_complex_networks.agent.heuristic import resilience_centrality
         agent = resilience_centrality
+    elif cfg.agent == 'state':
+        from attack_resilience_complex_networks.agent.heuristic import state
+        agent = state
+    elif cfg.agent == 'rc-state':
+        from attack_resilience_complex_networks.agent.heuristic import rc_state
+        agent = rc_state
+    elif cfg.agent == 'pagerank':
+        from attack_resilience_complex_networks.agent.pagerank import PY_PAGERANK
+        agent = PY_PAGERANK()
+    elif cfg.agent == 'domirank':
+        from attack_resilience_complex_networks.agent.domirank import PY_DOMIRANK
+        agent = PY_DOMIRANK()
     elif cfg.agent == 'finder':
         from attack_resilience_complex_networks.agent.finder import PY_FINDER
-        agent = PY_FINDER()
+        agent = PY_FINDER(reinsertion=reinsertion)
     elif cfg.agent == 'gdm':
         from attack_resilience_complex_networks.agent.gdm import PY_GDM
-        agent = PY_GDM()
+        agent = PY_GDM(reinsertion=reinsertion)
     elif cfg.agent == 'gnd':
         from attack_resilience_complex_networks.agent.gnd import PY_GND
-        agent = PY_GND()
+        agent = PY_GND(reinsertion=reinsertion)
     elif cfg.agent == 'ei':
         from attack_resilience_complex_networks.agent.ei import PY_EI
         agent = PY_EI()
     elif cfg.agent == 'ci':
         from attack_resilience_complex_networks.agent.ci import PY_CI
-        agent = PY_CI()
+        agent = PY_CI(use_reinsert=reinsertion)
     elif cfg.agent == 'corehd':
         from attack_resilience_complex_networks.agent.corehd import PY_COREHD
         agent = PY_COREHD()
+    elif cfg.agent == 'pagerank-state':
+        from attack_resilience_complex_networks.agent.pagerank_state import pagerank_state
+        agent = pagerank_state
+    elif cfg.agent == 'eigen-state':
+        from attack_resilience_complex_networks.agent.eigen_state import eigen_state
+        agent = eigen_state
     elif cfg.agent == 'selinda-dynamic':
         from attack_resilience_complex_networks.agent.symbolic_regression import sr
         agent = sr
+    elif cfg.agent == 'selinda-dynamic-reverse':
+        from attack_resilience_complex_networks.agent.symbolic_regression import sr_reverse
+        agent = sr_reverse
     elif cfg.agent == 'selinda-topology':
         from attack_resilience_complex_networks.agent.sr import PY_SR
-        agent = PY_SR()
+        agent = PY_SR(use_reinsert=reinsertion)
     elif cfg.agent == 'selinda-homogeneous':
         from attack_resilience_complex_networks.agent.heuristic import resilience_centrality_revised
         agent = resilience_centrality_revised
@@ -115,8 +138,10 @@ def get_agent(cfg: Config,
 
 def evaluate(agent,
              env: EvalCN) -> Tuple[float, float, List[int], int, Optional[Tuple]]:
-    if FLAGS.agent in ['rl-gnn', 'gdm']:
+    if FLAGS.agent == 'rl-gnn':
         return evaluate_ppo(agent, env)
+    elif FLAGS.agent == 'gdm':
+        return evaluate_gdm(agent, env)
     else:
         return evaluate_baseline(agent, env)
 
@@ -150,10 +175,24 @@ def evaluate_ppo(agent, env: EvalCN) -> Tuple[float, float, List[int], int, Opti
     return reward, 0.0, action_history, num_nodes_after_attack, None
 
 
-def evaluate_finder(agent, env: EvalCN) \
+def evaluate_gdm(agent, env: EvalCN) \
         -> Tuple[float, float, List[int], int, Tuple[List[float], List[float], List[float], List[float], List[float]]]:
     obs, _ = env.reset()
-    if env.cfg.agent in ['finder', 'gnd', 'ei', 'ci', 'corehd', 'selinda-topology']:
+    _, valid_actions, indices = unpack_obs(obs)
+    g = env.get_topology()
+    nx.set_edge_attributes(g, 1.0, 'weight')
+    _, log_prob = agent.predict(obs, deterministic=True)
+    rank_one_shot = indices[valid_actions][np.argsort(log_prob[valid_actions])]
+    solution = rank_one_shot[::-1].tolist()
+    solution = agent.update_solution(g, solution)
+    reward, _, action_history, num_nodes_after_attack, _, _, _, _, _ = env.evaluate_finder_solution(solution)
+    return reward, 0.0, action_history, num_nodes_after_attack, None
+
+
+def evaluate_finder(agent, env: EvalCN) \
+        -> Tuple[float, float, List[int], int, Tuple[Union[float, List[float]], Union[float, List[float]], Union[float, List[float]], Union[float, List[float]], Union[float, List[float]]]]:
+    obs, _ = env.reset()
+    if env.cfg.agent in ['pagerank', 'domirank', 'finder', 'gnd', 'ei', 'ci', 'corehd', 'selinda-topology']:
         g = env.get_topology()
         nx.set_edge_attributes(g, 1.0, 'weight')
         if env.cfg.agent == 'finder' and FLAGS.oneshot:
@@ -172,7 +211,7 @@ def evaluate_finder(agent, env: EvalCN) \
 def evaluate_baseline(
         agent,
         env: EvalCN) -> Tuple[float, float, List[int], int, Optional[Tuple]]:
-    if env.cfg.agent in ['finder', 'gnd', 'ei', 'ci', 'corehd', 'selinda-topology'] or FLAGS.oneshot:
+    if env.cfg.agent in ['pagerank', 'domirank', 'finder', 'gnd', 'ei', 'ci', 'corehd', 'selinda-topology'] or FLAGS.oneshot:
         return evaluate_finder(agent, env)
     else:
         obs, _ = env.reset()
@@ -181,7 +220,12 @@ def evaluate_baseline(
         num_nodes = env.get_num_nodes()
         with tqdm(total=num_nodes) as pbar:
             while not done:
-                action = agent(obs)
+                if env.cfg.agent in ['pagerank-state', 'eigen-state']:
+                    g = env.get_topology()
+                    nx.set_edge_attributes(g, 1.0, 'weight')
+                    action = agent(g, obs)
+                else:
+                    action = agent(obs)
                 obs, reward, terminated, truncated, info = env.step(action)
                 done = terminated or truncated
                 pbar.update(1)

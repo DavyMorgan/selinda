@@ -9,6 +9,8 @@ import tempfile
 import networkx as nx
 import subprocess
 
+from attack_resilience_complex_networks.agent.reinsertion import reinsert
+
 
 class PY_SR:
     def __init__(self, l: int = 1, stop_condition: int = 1, oneshot: bool = True, use_reinsert: bool = False):
@@ -51,6 +53,7 @@ class PY_SR:
                     node = line.strip().split(" ")[1]
 
                     nodes.append(int(node)-1)
+
         except Exception as e:
             print(e)
         finally:

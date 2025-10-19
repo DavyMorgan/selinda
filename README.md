@@ -164,6 +164,3 @@ bash app_explain_homo_value.sh # utilize XAI to identify important node features
 bash app_sr_data_homo_value.sh # generate training data for SR
 bash app_sr_homo_value.sh # utilize SR to derive a physical metric that mimics the value network
 ```
-
-## License
-Please see the [license](LICENSE) for further details.

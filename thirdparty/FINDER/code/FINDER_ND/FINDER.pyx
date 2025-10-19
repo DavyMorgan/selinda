@@ -688,16 +688,16 @@ class FINDER:
 
     def EvaluateRealData(self, topology, stepRatio=0.0025):  #测试真实数据
         cdef double solution_time = 0.0
-        g = topology
+        #g = topology
         print ('testing')
         sys.stdout.flush()
-        print ('number of nodes:%d'%(nx.number_of_nodes(g)))
-        print ('number of edges:%d'%(nx.number_of_edges(g)))
+        print ('number of nodes:%d'%(nx.number_of_nodes(topology)))
+        print ('number of edges:%d'%(nx.number_of_edges(topology)))
         if stepRatio > 0:
-            step = np.max([int(stepRatio*nx.number_of_nodes(g)),1]) #step size
+            step = np.max([int(stepRatio*nx.number_of_nodes(topology)),1]) #step size
         else:
             step = 1
-        self.InsertGraph(g, is_test=True)
+        self.InsertGraph(topology, is_test=True)
         t1 = time.time()
         solution = self.GetSolution(0,step)
         t2 = time.time()

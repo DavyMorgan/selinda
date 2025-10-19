@@ -11,4 +11,6 @@ runs
 *.zip
 *.npz
 *.db
+*.gt
+*.o
 lightning_logs

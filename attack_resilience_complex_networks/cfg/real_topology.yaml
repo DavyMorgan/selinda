@@ -1,6 +1,6 @@
 # env
 env_specs:
-  topology_filename: data/real/Crime.txt
+  topology_filename: data/real/facebook.txt
   graph_type: 
   graph_scale: 1.0
   budget: 1.0

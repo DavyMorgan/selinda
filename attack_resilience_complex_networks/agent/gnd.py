@@ -11,8 +11,10 @@ import subprocess
 
 
 class PY_GND:
-    def __init__(self):
+    def __init__(self, reinsertion: bool=False):
         self.executable = "GND"
+        self.executable2 = "reinsertion"
+        self.reinsertion = reinsertion
 
     def get_solution(self, network: nx.Graph) -> List[int]:
         num_nodes = network.number_of_nodes()
@@ -20,6 +22,7 @@ class PY_GND:
         nodes = []
         temp_input_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt')
         temp_output_file = tempfile.NamedTemporaryFile(mode='r', suffix='.txt')
+        temp_output_file2 = tempfile.NamedTemporaryFile(mode='r', suffix='.txt')
         try:
             with open(temp_input_file.name, "w") as tmp:
                 for edge in network.edges():
@@ -41,8 +44,23 @@ class PY_GND:
                 cmds,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.STDOUT)
+            output_filename = temp_output_file.name
 
-            with open(temp_output_file.name, "r") as tmp:
+            if self.reinsertion:
+                cmds = [
+                    f"{gnd_root_path}/{self.executable2}",
+                    f"{temp_input_file.name}",
+                    f"{temp_output_file.name}",
+                    f"{temp_output_file2.name}",
+                ]
+
+                subprocess.run(
+                    cmds,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.STDOUT)
+                output_filename = temp_output_file2.name
+
+            with open(output_filename, "r") as tmp:
                 for line in tmp.readlines():
                     node = line.strip()
 
@@ -52,6 +70,7 @@ class PY_GND:
         finally:
             temp_input_file.close()
             temp_output_file.close()
+            temp_output_file2.close()
 
         return nodes
 

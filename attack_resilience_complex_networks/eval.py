@@ -3,7 +3,9 @@ import pickle
 import time
 from typing import Tuple, List
 
+import networkx as nx
 import numpy as np
+from scipy.stats import pearsonr
 import torch as th
 
 from attack_resilience_complex_networks.eval_utils import (evaluate, get_agent, report_eval,
@@ -18,10 +20,12 @@ flags.DEFINE_string('root_dir', '/data/selinda', 'Root directory for writing log
 flags.DEFINE_bool('tmp', False, 'Whether to use temporary storage.')
 flags.DEFINE_bool('debug', False, 'Whether to use debug mode.')
 flags.DEFINE_enum('agent', None,
-                  ['random', 'degree', 'resilience', 'finder', 'gdm', 'gnd', 'ei', 'ci', 'corehd',
-                   'selinda-dynamic', 'selinda-topology', 'selinda-homogeneous', 'rl-gnn'],
+                  ['random', 'degree', 'resilience', 'pagerank', 'domirank', 'finder', 'gdm', 'gnd', 'ei', 'ci', 'corehd',
+                   'pagerank-state', 'eigen-state', 'state', 'rc-state',
+                   'selinda-dynamic', 'selinda-topology', 'selinda-homogeneous', 'rl-gnn', 'selinda-dynamic-reverse'],
                   'Agent type.')
 flags.DEFINE_bool('oneshot', False, 'Whether to use oneshot test.')
+flags.DEFINE_bool('reinsertion', False, 'Whether to use reinsertion.')
 flags.DEFINE_bool('has_dynamics', True, 'Whether the network has a system dynamic.')
 flags.DEFINE_string('model_path', None, 'Path to saved mode to evaluate.')
 flags.DEFINE_bool('random_episode', False, 'Whether to use a random network in each episode.')
@@ -31,6 +35,8 @@ flags.DEFINE_multi_integer('protected_nodes', None, 'The protected nodes.')
 flags.DEFINE_multi_integer('pre_attacked_nodes', None, 'The nodes that have been attacked before the episode.')
 flags.DEFINE_bool('case_study', False, 'Whether to print d and h values for case study.')
 flags.DEFINE_bool('early_warning', False, 'Whether to study early warning.')
+flags.DEFINE_bool('report_ds_corr', False, 'Whether to report the correlation between d and s.')
+flags.DEFINE_bool('report_articulation', False, 'Whether to report the articulation points.')
 FLAGS = flags.FLAGS
 
 
@@ -38,7 +44,7 @@ def main(_):
     print('start evaluation.')
     set_proc_and_seed(FLAGS.global_seed)
 
-    if FLAGS.agent in ['resilience', 'selinda-homogeneous', 'selinda-dynamic']:
+    if FLAGS.agent in ['resilience', 'selinda-homogeneous', 'selinda-dynamic', 'selinda-dynamic-reverse']:
         assert FLAGS.has_dynamics
 
     if FLAGS.early_warning:
@@ -79,12 +85,12 @@ def main(_):
         model_path = None
         rl_eval_env = None
 
-    agent = get_agent(cfg, rl_eval_env, model_path)
+    agent = get_agent(cfg, rl_eval_env, model_path, FLAGS.reinsertion)
 
     def test_core() -> Tuple[float, float, List[int], List[float]]:
         with th.no_grad():
             start_time = time.time()
-            if FLAGS.agent in ['finder', 'gnd', 'ei', 'ci', 'corehd', 'selinda-topology'] or FLAGS.oneshot:
+            if FLAGS.agent in ['pagerank', 'domirank', 'finder', 'gnd', 'ei', 'ci', 'corehd', 'selinda-topology'] or FLAGS.oneshot:
                 _mean_reward, _, attacked_nodes, num_nodes_after_attack, proxy = evaluate(agent, eval_env)
             else:
                 _mean_reward, _, attacked_nodes, num_nodes_after_attack, _ = evaluate(agent, eval_env)
@@ -96,33 +102,83 @@ def main(_):
                     proxy = (None, None, eval_env.report_connectivity_history(), None, None)
             case_time = time.time() - start_time
             report_eval(case_time, cfg, eval_env, budget, _mean_reward, attacked_nodes, num_nodes_after_attack, proxy)
-        _network_proxy = proxy[3] if FLAGS.has_dynamics else proxy[2]
+        if proxy:
+            _network_proxy = proxy[3] if FLAGS.has_dynamics else proxy[2]
+        else:
+            _network_proxy = None
         return _mean_reward, case_time, attacked_nodes, _network_proxy
 
-    if FLAGS.num_instances == 0:
-        mean_reward, eval_time, attacked_nodes, network_proxy = test_core()
-        if FLAGS.early_warning:
-            ew_score = sr_score[attacked_nodes]
-            ew_score = np.clip(ew_score.cumsum() / ew_thres, 0, 1)
-            print(f'\t early warning score: {ew_score}')
-            save_dict = {
-                'network_proxy': network_proxy,
-                'ew_score': ew_score
-            }
-            with open(f'{FLAGS.root_dir}/early_warning.pkl', 'wb') as f:
-                pickle.dump(save_dict, f)
-    else:
+    if FLAGS.report_articulation:
+        assert not FLAGS.has_dynamics
+        assert FLAGS.agent in ['degree', 'pagerank', 'selinda-topology']
+        assert FLAGS.num_instances <= 1
         eval_env.reset_instance_id()
-        overall_eval_time = 0.0
+        obs, _ = eval_env.reset()
+        node_features = obs['node_features']
+        action_mask = obs['action_mask']
+        valid_actions, = np.nonzero(action_mask)
+        degree_ = node_features[:, 0][valid_actions]
+        avg_neighbor_degree = node_features[:, 1][valid_actions]
+        score = degree_ ** 2 / (avg_neighbor_degree.clip(min=1))
+        rank = np.argsort(np.argsort(-score))
+        topology = eval_env.get_topology()
+        articulation_points = list(nx.articulation_points(topology))
+        print(f'articulation points: {set(articulation_points).intersection(set(valid_actions))}')
+        print(f'number of articulation points: {len(articulation_points)}')
+        print(f'rank of articulation points: {sorted(rank[articulation_points])}')
+        return
+
+    if not FLAGS.report_ds_corr:
+        if FLAGS.num_instances == 0:
+            mean_reward, eval_time, attacked_nodes, network_proxy = test_core()
+            if FLAGS.early_warning:
+                ew_score = sr_score[attacked_nodes]
+                print(f'\t Orinal early warning score: {ew_score.cumsum() / ew_thres}')
+                ew_score = np.clip(ew_score.cumsum() / ew_thres, 0, 1)
+                print(f'\t Clipped early warning score: {ew_score}')
+                save_dict = {
+                    'network_proxy': network_proxy,
+                    'ew_score': ew_score
+                }
+                with open(f'{FLAGS.root_dir}/early_warning.pkl', 'wb') as f:
+                    pickle.dump(save_dict, f)
+                for alarm_point in [0.3, 0.4, 0.5, 0.6, 0.7]:
+                    alarm_step = np.where(ew_score >= alarm_point)[0][0]
+                    relative_lead_time = (len(ew_score) - alarm_step - 1) / len(ew_score)
+                    print(f'\t alarm point: {alarm_point}, alarm step: {alarm_step}, relative lead time: {relative_lead_time}')
+        else:
+            eval_env.reset_instance_id()
+            overall_eval_time = 0.0
+            for _ in range(FLAGS.num_instances):
+                mean_reward, eval_time, _, _ = test_core()
+                overall_eval_time = overall_eval_time + eval_time
+                all_results.append(mean_reward)
+            print(f'all results: {all_results}')
+            print(f'sum: {sum(all_results)}')
+            print(f'avg: {sum(all_results)/len(all_results)}')
+            print(f'eval time: {overall_eval_time}')
+            print(f'avg eval time: {overall_eval_time/len(all_results)}')
+    else:
+        assert FLAGS.has_dynamics
+        assert FLAGS.num_instances > 0
+        assert FLAGS.agent == 'selinda-dynamic'
+        eval_env.reset_instance_id()
+        ds_corr_list = []
         for _ in range(FLAGS.num_instances):
-            mean_reward, eval_time, _, _ = test_core()
-            overall_eval_time = overall_eval_time + eval_time
-            all_results.append(mean_reward)
-        print(f'all results: {all_results}')
-        print(f'sum: {sum(all_results)}')
-        print(f'avg: {sum(all_results)/len(all_results)}')
-        print(f'eval time: {overall_eval_time}')
-        print(f'avg eval time: {overall_eval_time/len(all_results)}')
+            obs, _ = eval_env.reset()
+            node_features = obs['node_features']
+            action_mask = obs['action_mask']
+            valid_actions, = np.nonzero(action_mask)
+            degree_ = node_features[:, 0][valid_actions]
+            stable_state_ = node_features[:, -4][valid_actions]
+            corr = pearsonr(degree_, stable_state_).statistic
+            ds_corr_list.append(corr)
+            print(f'instance {_}, d-s corr: {corr}')
+        print(f'average d-s corr: {np.mean(ds_corr_list)}')
+        print(f'std d-s corr: {np.std(ds_corr_list)}')
+        print(f'min d-s corr: {np.min(ds_corr_list)}')
+        print(f'max d-s corr: {np.max(ds_corr_list)}')
+        print(f'all d-s corr: {ds_corr_list}')
 
 
 if __name__ == '__main__':

@@ -1,11 +1,10 @@
 python -m attack_resilience_complex_networks.train \
-  --cfg synthetic_ba_n_dismantle \
+  --cfg synthetic_ba_n_topology \
   --global_seed 111 \
   --root_dir /data/selinda \
   --val_freq 4000 \
   --save_freq 4000 \
   --noearly_stop \
-  --agent rl-gnn \
   --num_envs 100 \
   --lr 0.0004 \
   --steps_per_iteration 4000 \

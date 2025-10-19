@@ -22,14 +22,13 @@ FLAGS = flags.FLAGS
 def get_explain_policy(cfg: Config,
                        env: Union[DummyVecEnv, VecNormalize],
                        model_path: Optional[str]) -> ExplainPolicy:
-    test_model = get_model(cfg, env)
+    test_model = get_model(cfg, env, explain=False)
     if model_path:
         trained_model = PPO.load(model_path)
         test_model.set_parameters(trained_model.get_parameters())
     agent = test_model
     params = agent.policy.state_dict()
-    num_node_features = env.env_method('get_num_node_features')[0]
-    policy_kwargs = get_policy_kwargs(cfg, num_node_features, explain=True, observation_space=env.observation_space)
+    policy_kwargs = get_policy_kwargs(cfg, explain=True, observation_space=env.observation_space)
     device = test_model.policy.device
     if not FLAGS.explain_value:
         explain_agent = ExplainPolicy(device, **policy_kwargs)
@@ -47,7 +46,7 @@ def prepare_explain_sr() -> Tuple[Config, float, EvalCN, ExplainPolicy]:
     np.random.seed(FLAGS.global_seed)
     random.seed(FLAGS.global_seed)
 
-    cfg = Config(FLAGS.cfg, FLAGS.global_seed, FLAGS.tmp, FLAGS.root_dir, FLAGS.agent)
+    cfg = Config(FLAGS.cfg, FLAGS.global_seed, FLAGS.tmp, FLAGS.root_dir)
     budget, eval_env = get_budget_env(cfg)
 
     assert cfg.agent.startswith('rl')
@@ -81,6 +80,10 @@ def compute_sr_x(obs: Dict[str, np.ndarray], env: EvalCN) -> pd.DataFrame:
             weighted_degree = node_features[:, 1]
             kcore = node_features[:, 2]
             weighted_kcore = node_features[:, 3]
+            cc = node_features[:, 4]
+            weighted_cc = node_features[:, 5]
+            pr = node_features[:, 6]
+            weighted_pr = node_features[:, 7]
             betweenness = node_features[:, 8]
             weighted_betweenness = node_features[:, 9]
             sr_x = pd.DataFrame(
@@ -88,6 +91,10 @@ def compute_sr_x(obs: Dict[str, np.ndarray], env: EvalCN) -> pd.DataFrame:
                  'w_d': weighted_degree,
                  'k': kcore,
                  'w_k': weighted_kcore,
+                 'c': cc,
+                 'w_c': weighted_cc,
+                 'p': pr,
+                 'w_p': weighted_pr,
                  'b': betweenness,
                  'w_b': weighted_betweenness}
             )
